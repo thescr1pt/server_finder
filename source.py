@@ -21,6 +21,7 @@ required_packages = {
     "pyperclip": "pyperclip",
     "pyttsx3": "pyttsx3",
     "rapidfuzz": "rapidfuzz",
+    "customtkinter": "customtkinter",
 }
 
 ensure_packages(required_packages)
@@ -29,8 +30,14 @@ import discord
 import pyperclip
 import pyttsx3
 from rapidfuzz import process, fuzz
+import customtkinter as ctk
+import threading
+import asyncio
 
 FILE = "token.txt"
+
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
 
 
 def read_token():
@@ -58,9 +65,6 @@ def read_token():
 # Your personal token (Keep it private!)
 TOKEN = read_token()
 SOURCE_CHANNEL_ID = 1348415113228718151  # Channel to copy messages from
-
-YELLOW = "\033[93m"
-RESET = "\033[0m"
 
 # SERVER NAMES:
 SERVER_NAME_FIRST = {
@@ -146,8 +150,8 @@ SERVER_NAME_SECOND = {
     "quiver",
 }
 
-# Set up keywords to search for
-KEYWORDS = {
+
+TREANT_KEYWORDS = {
     "treant",
     "groot",
     "tree",
@@ -168,7 +172,13 @@ KEYWORDS = {
     "branch",
     "treaant",
     "eldertreant",
+    "trench",
 }
+
+RUNE_GOLEM_KEYWORDS = {"rune", "golem", "rg", "rungolem", "runegolem", "rgolem"}
+
+keywords = TREANT_KEYWORDS
+
 
 BANNED_KEYWORDS = {
     "lf",
@@ -201,9 +211,6 @@ Florida = {"fl", "florida"}
 Washington = {"wa", "washington"}
 India = {"india", "maharatasha", "maharashtra", "mahatrasha"}
 
-# Create the client for the self-bot
-bot = discord.Client(self_bot=True)
-
 
 def speak(text, volume=0.4):
     engine = pyttsx3.init()
@@ -212,31 +219,47 @@ def speak(text, volume=0.4):
     engine.runAndWait()
 
 
-def speak_region(server_name, words, volume=0.4):
+def speak_region(server_name, words, mode):
     words = set(words)
 
+    region = ""
+    location = ""
+
     if words & California:
-        speak(server_name + " California")
+        region = "California"
     elif words & Singapore:
-        speak(server_name + " North West Singapore")
+        region = "Singapore"
     elif words & Texas:
-        speak(server_name + " Texas")
+        region = "Texas"
     elif words & Oregon:
-        speak(server_name + " Oregon")
+        region = "Oregon"
     elif words & Hesse:
-        speak(server_name + " Hesse Germany")
+        region = "Hesse"
     elif words & Unknown:
-        speak(server_name + " Unknown")
+        region = "Unknown"
     elif words & Holland:
-        speak(server_name + " Holland")
+        region = "Holland"
     elif words & Florida:
-        speak(server_name + " Florida")
+        region = "Florida"
     elif words & Washington:
-        speak(server_name + " Washington")
+        region = "Washington"
     elif words & India:
-        speak(server_name + " India")
+        region = "India"
     else:
-        speak(server_name + " No Region")
+        region = "No Region"
+
+    if mode == "treant":
+        speak(f"{server_name}, {region}")
+        return
+
+    if words & {"forest"}:
+        location = "Forest"
+    elif words & {"beach"}:
+        location = "Beach"
+    else:
+        location = "No Location"
+
+    speak(f"{server_name}, {region}, {location}")
 
 
 def correct_word(word, word_list):
@@ -263,10 +286,10 @@ def find_correct_words(words):
     return None
 
 
-def check_boss(text):
+def check_boss(text, gui, mode):
     text = text.lower()
-    if text != "":
-        print(text)
+    if text != "" and len(text) <= 250:
+        gui.log(text)
 
         # Check for keywords
         clean_text = text
@@ -274,43 +297,144 @@ def check_boss(text):
             clean_text = clean_text.replace(symbol, " ")
 
         words = clean_text.split()
-        found_keywords = KEYWORDS & set(words)
+        found_keywords = keywords & set(words)
         banned = BANNED_KEYWORDS & set(words)
 
         if found_keywords and not banned:
-            print(f"Keyword(s) {found_keywords} found")
+            gui.log(f"Keyword(s) {found_keywords} found")
             server_name = find_correct_words(words)
 
             if server_name:
                 pyperclip.copy(server_name)
-                print("Server Name: " + YELLOW + server_name + RESET)
-                speak_region(server_name, words)
+                gui.log("Server Name: " + server_name)
+                speak_region(server_name, words, mode)
 
-        print("--------------------------------------------------")
-
-
-@bot.event
-async def on_ready():
-    # print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print("--------------------------------------------------")
-    print("Starting server sniper...")
-    print("Logged in Successfully")
-    print("--------------------------------------------------")
-    print("--------------------------------------------------")
+        gui.log("--------------------------------------------------")
 
 
-@bot.event
-async def on_message(message):
+class DiscordBot(discord.Client):
+    def __init__(self, gui):
+        super().__init__(self_bot=True)
+        self.gui = gui
 
-    # print(f"Message detected in channel {message.channel.id} from {message.author}: {message.content}")
+    async def on_ready(self):
+        self.gui.log("Logged in Successfully")
+        self.gui.log("--------------------------------------------------")
+        self.gui.update_status("Running")
+        self.gui.start_button.configure(state="normal")
+        self.gui.start_button.configure(text="Stop")
 
-    # Ignore own messages to avoid loops
-    if message.author == bot.user:
-        return
+    async def on_message(self, message):
 
-    # Check if the message is in the source channel and has attachments
-    if message.channel.id == SOURCE_CHANNEL_ID:
-        check_boss(message.content)
+        # print(f"Message detected in channel {message.channel.id} from {message.author}: {message.content}")
+
+        # Ignore own messages to avoid loops
+        if message.author == self.user:
+            return
+
+        # Check if the message is in the source channel and has attachments
+        if message.channel.id == SOURCE_CHANNEL_ID:
+            check_boss(message.content, self.gui, self.gui.mode)
 
 
-bot.run(TOKEN)
+class GUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("Server Sniper")
+        self.geometry("800x500")
+
+        self.labels = ctk.CTkFrame(self, fg_color="transparent")
+        self.labels.pack(pady=10, side="top")
+
+        self.stat_label = ctk.CTkLabel(
+            self.labels, text="Status: Stopped", font=("Arial", 16)
+        )
+        self.stat_label.pack(padx=10)
+
+        self.mode_label = ctk.CTkLabel(
+            self.labels, text="Mode: Treant", font=("Arial", 16)
+        )
+        self.mode_label.pack(padx=10)
+
+        self.buttons = ctk.CTkFrame(self, fg_color="transparent")
+        self.buttons.pack(pady=10, side="top")
+
+        self.bosses = ctk.CTkFrame(self.buttons, fg_color="transparent")
+        self.bosses.pack(pady=10, padx=20, side="right")
+
+        self.start_button = ctk.CTkButton(
+            self.buttons, text="Start", command=self.start_stop
+        )
+        self.start_button.pack(side="left", padx=10, pady=5)
+
+        self.switch_treant_button = ctk.CTkButton(
+            self.bosses, text="Treant", state="disabled", command=self.switch_treant
+        )
+        self.switch_treant_button.pack(padx=10, pady=5)
+
+        self.switch_rune_button = ctk.CTkButton(
+            self.bosses, text="Rune Golem", command=self.switch_rune
+        )
+        self.switch_rune_button.pack(padx=10, pady=5)
+
+        self.log_box = ctk.CTkTextbox(
+            self, height=200, wrap="none", font=("Segoe UI Emoji", 14)
+        )
+        self.log_box.pack(pady=10, fill="both", expand=True, side="bottom")
+
+        self.bot = None
+        self.bot_thread = None
+        self.mode = "treant"
+
+    def log(self, message):
+        self.log_box.configure(state="normal")
+        self.log_box.insert("end", message + "\n")
+        self.log_box.yview_moveto(1)
+        self.log_box.configure(state="disabled")
+
+    def update_status(self, status):
+        self.stat_label.configure(text=f"Status: {status}")
+
+    def run_bot(self):
+        asyncio.run(self.bot.start(TOKEN))
+
+    def start_stop(self):
+        if not self.bot:
+            self.bot = DiscordBot(self)
+            self.bot_thread = threading.Thread(target=self.run_bot, daemon=True)
+            self.bot_thread.start()
+            self.start_button.configure(state="disabled")
+            self.update_status("Starting...")
+        else:
+            asyncio.run_coroutine_threadsafe(self.bot.close(), self.bot.loop)
+            self.bot = None
+            self.update_status("Stopped")
+            self.log("Bot stopped")
+            self.log("--------------------------------------------------")
+            self.start_button.configure(text="Start")
+
+    def switch_treant(self):
+        global keywords
+        if self.mode != "treant":
+            self.mode = "treant"
+            keywords = TREANT_KEYWORDS
+            self.mode_label.configure(text="Mode: Treant")
+            self.switch_treant_button.configure(state="disabled")
+            self.switch_rune_button.configure(state="normal")
+            self.log("Switched to Treant")
+            self.log("--------------------------------------------------")
+
+    def switch_rune(self):
+        global keywords
+        if self.mode != "rune":
+            self.mode = "rune"
+            keywords = RUNE_GOLEM_KEYWORDS
+            self.mode_label.configure(text="Mode: Rune Golem")
+            self.switch_treant_button.configure(state="normal")
+            self.switch_rune_button.configure(state="disabled")
+            self.log("Switched to Rune Golem")
+            self.log("--------------------------------------------------")
+
+
+app = GUI()
+app.mainloop()
