@@ -195,7 +195,24 @@ BANNED_KEYWORDS = {
     "farms",
 }
 
-SYMBOLS = {",", "/", "\\", "\n", "|", "‘", "*", ")", "(", ":", ";", "!", "-", "#"}
+SYMBOLS = {
+    ",",
+    "/",
+    "\\",
+    "\n",
+    "|",
+    "‘",
+    "*",
+    ")",
+    "(",
+    ":",
+    ";",
+    "!",
+    "-",
+    "#",
+    "[",
+    "]",
+}
 
 California = {"cali", "cal", "california", "cl"}
 Singapore = {"sg", "singapore", "west", "nwsg", "nw", "northwest", "north-west"}
