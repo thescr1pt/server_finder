@@ -43,9 +43,7 @@ ctk.set_default_color_theme("blue")
 def read_token():
 
     if not os.path.exists(FILE):
-        print(
-            "Token file is empty. Please add your token to 'token.txt' and rerun the program."
-        )
+        print("Please add your token to 'token.txt' and rerun the program.")
         with open(FILE, "w") as file:
             file.write("")
         exit(1)
@@ -167,7 +165,6 @@ TREANT_KEYWORDS = {
     "treat",
     "man",
     "🌲",
-    "guy",
     "🎄",
     "branch",
     "treaant",
@@ -288,7 +285,7 @@ def find_correct_words(words):
 
 def check_boss(text, gui, mode):
     text = text.lower()
-    if text != "" and len(text) <= 250:
+    if text != "" and len(text) <= 500:
         gui.log(text)
 
         # Check for keywords
