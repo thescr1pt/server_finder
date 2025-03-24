@@ -216,7 +216,7 @@ SYMBOLS = {
     "]",
 }
 
-California = {"cali", "cal", "california", "cl"}
+California = {"cali", "cal", "california", "cl", "ca"}
 Singapore = {"sg", "singapore", "west", "nwsg", "nw", "northwest", "north-west"}
 Texas = {"tx", "texas", "tex", "texts"}
 Oregon = {"or", "oregon", "org", "oregan", "oregeon"}
