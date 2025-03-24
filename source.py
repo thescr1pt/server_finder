@@ -183,6 +183,7 @@ LICHT_KING_KEYWORDS = {
     "lich",
     "litch",
     "litcht",
+    "linch",
 }
 
 keywords = TREANT_KEYWORDS
