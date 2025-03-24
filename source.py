@@ -174,6 +174,8 @@ TREANT_KEYWORDS = {
 
 RUNE_GOLEM_KEYWORDS = {"rune", "golem", "rg", "rungolem", "runegolem", "rgolem"}
 
+LICHT_KING_KEYWORDS = {"licht", "lk", "lichtking", "lichtk", "lichtkng", "lich"}
+
 keywords = TREANT_KEYWORDS
 
 
@@ -262,7 +264,7 @@ def speak_region(server_name, words, mode):
     else:
         region = "No Region"
 
-    if mode == "treant":
+    if mode == "treant" or mode == "licht":
         speak(f"{server_name}, {region}")
         return
 
@@ -382,7 +384,10 @@ class GUI(ctk.CTk):
         self.start_button.pack(side="left", padx=10, pady=5)
 
         self.switch_treant_button = ctk.CTkButton(
-            self.bosses, text="Treant", state="disabled", command=self.switch_treant
+            self.bosses,
+            text="Elder Treant",
+            state="disabled",
+            command=self.switch_treant,
         )
         self.switch_treant_button.pack(padx=10, pady=5)
 
@@ -390,6 +395,11 @@ class GUI(ctk.CTk):
             self.bosses, text="Rune Golem", command=self.switch_rune
         )
         self.switch_rune_button.pack(padx=10, pady=5)
+
+        self.switch_licht_button = ctk.CTkButton(
+            self.bosses, text="Licht King", command=self.switch_licht
+        )
+        self.switch_licht_button.pack(padx=10, pady=5)
 
         self.log_box = ctk.CTkTextbox(
             self, height=200, wrap="none", font=("Segoe UI Emoji", 14)
@@ -432,10 +442,11 @@ class GUI(ctk.CTk):
         if self.mode != "treant":
             self.mode = "treant"
             keywords = TREANT_KEYWORDS
-            self.mode_label.configure(text="Mode: Treant")
+            self.mode_label.configure(text="Mode: Elder Treant")
             self.switch_treant_button.configure(state="disabled")
             self.switch_rune_button.configure(state="normal")
-            self.log("Switched to Treant")
+            self.switch_licht_button.configure(state="normal")
+            self.log("Switched to Elder Treant")
             self.log("--------------------------------------------------")
 
     def switch_rune(self):
@@ -444,9 +455,22 @@ class GUI(ctk.CTk):
             self.mode = "rune"
             keywords = RUNE_GOLEM_KEYWORDS
             self.mode_label.configure(text="Mode: Rune Golem")
-            self.switch_treant_button.configure(state="normal")
             self.switch_rune_button.configure(state="disabled")
+            self.switch_treant_button.configure(state="normal")
+            self.switch_licht_button.configure(state="normal")
             self.log("Switched to Rune Golem")
+            self.log("--------------------------------------------------")
+
+    def switch_licht(self):
+        global keywords
+        if self.mode != "licht":
+            self.mode = "licht"
+            keywords = LICHT_KING_KEYWORDS
+            self.mode_label.configure(text="Mode: Licht King")
+            self.switch_licht_button.configure(state="disabled")
+            self.switch_treant_button.configure(state="normal")
+            self.switch_rune_button.configure(state="normal")
+            self.log("Switched to Licht King")
             self.log("--------------------------------------------------")
 
 
