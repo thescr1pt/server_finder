@@ -1,3 +1,4 @@
+# fmt: off
 import sys, subprocess
 try: import requests
 except: subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"]); import requests
