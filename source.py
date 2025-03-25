@@ -422,11 +422,8 @@ class GUI(ctk.CTk):
 
     def log(self, message):
         self.log_box.configure(state="normal")
-        should_scroll = self.log_box.yview()[1] == 1.0
         self.log_box.insert("end", message + "\n")
-        if should_scroll:
-            self.log_box.yview_moveto(1)
-
+        self.log_box.yview_moveto(1)
         self.log_box.configure(state="disabled")
 
     def update_status(self, status):
