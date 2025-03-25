@@ -147,6 +147,7 @@ SERVER_NAME_SECOND = {
     "gauntlet",
     "ring",
     "quiver",
+    "crown",
 }
 
 
