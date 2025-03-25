@@ -315,11 +315,7 @@ def find_correct_words(words):
 def check_boss(text, gui, mode):
     text = text.lower()
     if text != "" and len(text) <= 500:
-
-        if len(text) > 80:
-            gui.log(text[:80])
-        else:
-            gui.log(text)
+        gui.log(text)
 
         # Check for keywords
         clean_text = text
