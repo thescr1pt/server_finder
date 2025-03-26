@@ -105,6 +105,7 @@ SERVER_NAME_FIRST = {
     "twilight",
     "venomous",
     "poisonous",
+    "holy",
 }
 
 SERVER_NAME_SECOND = {
